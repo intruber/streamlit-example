@@ -1,41 +1,43 @@
 import mysql.connector
-from flask import Flask, request, render_template
 
-app = Flask(__name__)
+# Database connection details
+host = 'db5013282227.hosting-data.io'
+port = 3306
+user = 'dbu1225225'
+password = 'fepvyg-sAgdim-9fysgy'
+database = 'your_database_name'  # Replace with your actual database name
 
-# Configure MySQL connection
-mysql_config = {
-    'user': 'your_username',
-    'password': 'your_password',
-    'host': 'localhost',
-    'database': 'your_database',
-}
+# Search query parameters
+food_name = 'Search food name here'  # Replace with the food name you want to search for
 
-# Route for the search page
-@app.route('/', methods=['GET', 'POST'])
-def search():
-    if request.method == 'POST':
-        keyword = request.form['keyword']
-        results = perform_search(keyword)
-        return render_template('results.html', results=results)
-    return render_template('search.html')
+# Establish a database connection
+connection = mysql.connector.connect(
+    host=host,
+    port=port,
+    user=user,
+    password=password,
+    database=database
+)
 
-# Perform the search query
-def perform_search(keyword):
-    conn = mysql.connector.connect(**mysql_config)
-    cursor = conn.cursor()
+# Create a cursor to execute SQL queries
+cursor = connection.cursor()
 
-    # Modify the query to match your table structure
-    query = "SELECT * FROM your_table WHERE column_name LIKE %s"
-    keyword = f"%{keyword}%"
+# Search query
+query = "SELECT * FROM foods WHERE food_name = %s"
 
-    cursor.execute(query, (keyword,))
-    results = cursor.fetchall()
+# Execute the query
+cursor.execute(query, (food_name,))
 
-    cursor.close()
-    conn.close()
+# Fetch all matching rows
+rows = cursor.fetchall()
 
-    return results
+# Process and display the search results
+if rows:
+    for row in rows:
+        print(row)  # Modify this to process or display the results as desired
+else:
+    print("No matching rows found.")
 
-if __name__ == '__main__':
-    app.run()
+# Close the cursor and database connection
+cursor.close()
+connection.close()
