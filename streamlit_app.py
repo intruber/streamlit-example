@@ -1,26 +1,41 @@
-import streamlit as st
+import mysql.connector
+from flask import Flask, request, render_template
 
-st.title("Lists!")
+app = Flask(__name__)
 
-lists = [
-    [],
-    [10, 20, 30],
-    [[10, 20, 30], [1, 2, 3]],
-    [[10, 20, 30], [1]],
-    [[10, "hi", 30], [1]],
-    [[{"foo": "bar"}, "hi", 30], [1]],
-    [[{"foo": "bar"}, "hi", 30], [1, [100, 200, 300, 400]]],
-]
+# Configure MySQL connection
+mysql_config = {
+    'user': 'your_username',
+    'password': 'your_password',
+    'host': 'localhost',
+    'database': 'your_database',
+}
 
+# Route for the search page
+@app.route('/', methods=['GET', 'POST'])
+def search():
+    if request.method == 'POST':
+        keyword = request.form['keyword']
+        results = perform_search(keyword)
+        return render_template('results.html', results=results)
+    return render_template('search.html')
 
-for i, l in enumerate(lists):
-    st.header("List %d" % i)
+# Perform the search query
+def perform_search(keyword):
+    conn = mysql.connector.connect(**mysql_config)
+    cursor = conn.cursor()
 
-    st.write("With st.write")
-    st.write(l)
+    # Modify the query to match your table structure
+    query = "SELECT * FROM your_table WHERE column_name LIKE %s"
+    keyword = f"%{keyword}%"
 
-    st.write("With st.json")
-    st.json(l)
+    cursor.execute(query, (keyword,))
+    results = cursor.fetchall()
 
-    st.write("With st.dataframe")
-    st.dataframe(l)
+    cursor.close()
+    conn.close()
+
+    return results
+
+if __name__ == '__main__':
+    app.run()
